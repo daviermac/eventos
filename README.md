@@ -1,2 +1,2 @@
-# exentos
+# eventos
 Projeto devops eventos 
