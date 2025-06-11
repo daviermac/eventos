@@ -83,7 +83,7 @@ class Evento(db.Model):
             'status': self.status
         }
 
-# ==================== ÁREA PÚBLICA ====================
+# ÁREA PÚBLICA 
 
 @app.route('/')
 def site_home():
@@ -107,7 +107,7 @@ def site_evento_detalhes(id):
 def site_calendario():
     return render_template('public/calendario.html')
 
-# ==================== AUTENTICAÇÃO ====================
+# AUTENTICAÇÃO 
 
 @app.route('/admin/login', methods=['GET', 'POST'])
 def admin_login():
@@ -144,7 +144,7 @@ def admin_logout():
     flash('Logout realizado com sucesso.', 'success')
     return redirect(url_for('admin_login'))
 
-# ==================== ÁREA ADMINISTRATIVA ====================
+# ÁREA ADMINISTRATIVA 
 
 @app.route('/admin')
 @login_required
@@ -329,7 +329,7 @@ def admin_editar_perfil():
     
     return render_template('admin/editar_perfil.html')
 
-# ==================== APIs ====================
+# APIs 
 
 @app.route('/api/eventos')
 def api_eventos():
@@ -367,7 +367,7 @@ def api_estatisticas():
     except Exception as e:
         return jsonify({'error': str(e)})
 
-# ==================== INICIALIZAÇÃO ====================
+# INICIALIZAÇÃO 
 
 def criar_usuario_admin():
     """Cria um usuário administrador padrão se não existir"""
