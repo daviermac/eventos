@@ -1,0 +1,116 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Editar Perfil - Painel Administrativo{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="mb-0">
+                        <i class="fas fa-user-edit me-2"></i>Editar Perfil
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <form method="POST" id="formPerfil">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="nome_completo" class="form-label">Nome Completo *</label>
+                                <input type="text" class="form-control" id="nome_completo" name="nome_completo" 
+                                       value="{{ current_user.nome_completo }}" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="email" class="form-label">E-mail *</label>
+                                <input type="email" class="form-control" id="email" name="email" 
+                                       value="{{ current_user.email }}" required>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="username" class="form-label">Usuário</label>
+                            <input type="text" class="form-control" id="username" name="username" 
+                                   value="{{ current_user.username }}" readonly>
+                            <div class="form-text">O nome de usuário não pode ser alterado.</div>
+                        </div>
+                        
+                        <hr class="my-4">
+                        
+                        <h5 class="mb-3">Alterar Senha</h5>
+                        <p class="text-muted">Deixe os campos em branco se não quiser alterar a senha.</p>
+                        
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="senha_atual" class="form-label">Senha Atual</label>
+                                <input type="password" class="form-control" id="senha_atual" name="senha_atual">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="nova_senha" class="form-label">Nova Senha</label>
+                                <input type="password" class="form-control" id="nova_senha" name="nova_senha">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="confirmar_senha" class="form-label">Confirmar Nova Senha</label>
+                                <input type="password" class="form-control" id="confirmar_senha" name="confirmar_senha">
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ url_for('admin_perfil') }}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-1"></i>Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i>Salvar Alterações
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const formPerfil = document.getElementById('formPerfil');
+    const senhaAtual = document.getElementById('senha_atual');
+    const novaSenha = document.getElementById('nova_senha');
+    const confirmarSenha = document.getElementById('confirmar_senha');
+    
+    formPerfil.addEventListener('submit', function(e) {
+        // Validar alteração de senha
+        if (novaSenha.value || confirmarSenha.value) {
+            if (!senhaAtual.value) {
+                e.preventDefault();
+                alert('Para alterar a senha, você deve informar a senha atual.');
+                senhaAtual.focus();
+                return false;
+            }
+            
+            if (novaSenha.value !== confirmarSenha.value) {
+                e.preventDefault();
+                alert('A nova senha e a confirmação não coincidem.');
+                confirmarSenha.focus();
+                return false;
+            }
+            
+            if (novaSenha.value.length < 6) {
+                e.preventDefault();
+                alert('A nova senha deve ter pelo menos 6 caracteres.');
+                novaSenha.focus();
+                return false;
+            }
+        }
+    });
+    
+    // Limpar campos de senha se não estiver alterando
+    novaSenha.addEventListener('input', function() {
+        if (!this.value) {
+            senhaAtual.value = '';
+            confirmarSenha.value = '';
+        }
+    });
+});
+</script>
+{% endblock %}
