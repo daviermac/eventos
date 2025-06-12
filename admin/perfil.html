@@ -1,0 +1,143 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Meu Perfil - Painel Administrativo{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="mb-0">
+                        <i class="fas fa-user-circle me-2"></i>Meu Perfil
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 text-center mb-4">
+                            <div class="profile-avatar">
+                                <i class="fas fa-user-circle fa-8x text-primary mb-3"></i>
+                                <h5>{{ current_user.nome_completo }}</h5>
+                                <p class="text-muted">@{{ current_user.username }}</p>
+                            </div>
+                        </div>
+                        <div class="col-md-8">
+                            <h5 class="mb-3">Informações Pessoais</h5>
+                            
+                            <div class="row mb-3">
+                                <div class="col-sm-4">
+                                    <strong>Nome Completo:</strong>
+                                </div>
+                                <div class="col-sm-8">
+                                    {{ current_user.nome_completo }}
+                                </div>
+                            </div>
+                            
+                            <div class="row mb-3">
+                                <div class="col-sm-4">
+                                    <strong>Usuário:</strong>
+                                </div>
+                                <div class="col-sm-8">
+                                    {{ current_user.username }}
+                                </div>
+                            </div>
+                            
+                            <div class="row mb-3">
+                                <div class="col-sm-4">
+                                    <strong>E-mail:</strong>
+                                </div>
+                                <div class="col-sm-8">
+                                    {{ current_user.email }}
+                                </div>
+                            </div>
+                            
+                            <div class="row mb-3">
+                                <div class="col-sm-4">
+                                    <strong>Cadastrado em:</strong>
+                                </div>
+                                <div class="col-sm-8">
+                                    {{ current_user.data_criacao.strftime('%d/%m/%Y às %H:%M') }}
+                                </div>
+                            </div>
+                            
+                            {% if current_user.ultimo_login %}
+                            <div class="row mb-3">
+                                <div class="col-sm-4">
+                                    <strong>Último login:</strong>
+                                </div>
+                                <div class="col-sm-8">
+                                    {{ current_user.ultimo_login.strftime('%d/%m/%Y às %H:%M') }}
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            <div class="row mb-3">
+                                <div class="col-sm-4">
+                                    <strong>Status:</strong>
+                                </div>
+                                <div class="col-sm-8">
+                                    <span class="badge bg-success">Ativo</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('admin_home') }}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-1"></i>Voltar
+                        </a>
+                        <a href="{{ url_for('admin_editar_perfil') }}" class="btn btn-primary">
+                            <i class="fas fa-edit me-1"></i>Editar Perfil
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Estatísticas do usuário -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-bar me-2"></i>Suas Estatísticas
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-4">
+                            <div class="stats-card">
+                                <div class="stats-number">
+                                    {{ current_user.evento_set.filter_by(status='ativo').count() if current_user.evento_set else 0 }}
+                                </div>
+                                <div class="text-muted">Eventos Criados</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="stats-card">
+                                <div class="stats-number">
+                                    {% set eventos_mes = current_user.evento_set.filter(
+                                        db.extract('month', Evento.data_evento) == namespace().now.month,
+                                        Evento.status == 'ativo'
+                                    ).count() if current_user.evento_set else 0 %}
+                                    {{ eventos_mes }}
+                                </div>
+                                <div class="text-muted">Este Mês</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="stats-card">
+                                <div class="stats-number">
+{% set dias_desde_cadastro = (namespace().now or cycler).__class__.__module__ == 'datetime' and (cycler.now or namespace().now or cycler).now().days or (cycler.now or namespace().now or cycler) %}
+{% set dias_desde_cadastro = (namespace().now or cycler).now().days if (namespace().now or cycler).now is defined else 0 %}
+                                    {{ dias_desde_cadastro }}
+                                </div>
+                                <div class="text-muted">Dias no Sistema</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
