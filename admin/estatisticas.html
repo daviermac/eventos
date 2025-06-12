@@ -1,0 +1,352 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Estatísticas - Painel Administrativo{% endblock %}
+
+{% block extra_css %}
+<style>
+    .stats-header {
+        background: linear-gradient(135deg, #2c5aa0, #1e3a5f);
+        color: white;
+        padding: 30px 0;
+        border-radius: 10px;
+        margin-bottom: 30px;
+    }
+    
+    .chart-container {
+        position: relative;
+        height: 300px;
+        margin-bottom: 30px;
+    }
+    
+    .metric-card {
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 20px;
+        background: white;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        transition: transform 0.2s;
+    }
+    
+    .metric-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .metric-value {
+        font-size: 2.5rem;
+        font-weight: bold;
+        color: #2c5aa0;
+    }
+    
+    .metric-label {
+        color: #6c757d;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    
+    .metric-icon {
+        font-size: 2.5rem;
+        opacity: 0.2;
+        position: absolute;
+        top: 15px;
+        right: 15px;
+    }
+    
+    .table-eventos th {
+        background-color: #f8f9fa;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Cabeçalho -->
+    <div class="stats-header text-center">
+        <div class="container">
+            <h1 class="display-5 fw-bold mb-3">
+                <i class="fas fa-chart-line me-3"></i>
+                Estatísticas de Eventos
+            </h1>
+            <p class="lead">
+                Visualize dados e métricas importantes sobre os eventos culturais
+            </p>
+        </div>
+    </div>
+    
+    <!-- Métricas Principais -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="metric-card position-relative">
+                <i class="fas fa-calendar-check metric-icon text-primary"></i>
+                <div class="metric-value">{{ total_eventos }}</div>
+                <div class="metric-label">Total de Eventos</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="metric-card position-relative">
+                <i class="fas fa-calendar-day metric-icon text-success"></i>
+                <div class="metric-value">{{ eventos_passados }}</div>
+                <div class="metric-label">Eventos Realizados</div>
+                <div class="small text-muted">Últimos 30 dias</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="metric-card position-relative">
+                <i class="fas fa-money-bill-wave metric-icon text-warning"></i>
+                <div class="metric-value">{{ eventos_gratuitos }}</div>
+                <div class="metric-label">Eventos Gratuitos</div>
+                <div class="small text-muted">{{ (eventos_gratuitos / total_eventos * 100)|round|int }}% do total</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="metric-card position-relative">
+                <i class="fas fa-ticket-alt metric-icon text-danger"></i>
+                <div class="metric-value">{{ eventos_pagos }}</div>
+                <div class="metric-label">Eventos Pagos</div>
+                <div class="small text-muted">{{ (eventos_pagos / total_eventos * 100)|round|int }}% do total</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Gráficos -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-chart-pie me-2"></i>Eventos por Categoria</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="categoriaChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Eventos por Mês</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="mesChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Próximos Eventos -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="fas fa-calendar-alt me-2"></i>Próximos Eventos</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover table-eventos">
+                    <thead>
+                        <tr>
+                            <th>Título</th>
+                            <th>Data</th>
+                            <th>Local</th>
+                            <th>Categoria</th>
+                            <th>Preço</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for evento in proximos_eventos %}
+                        <tr>
+                            <td>{{ evento.titulo }}</td>
+                            <td>{{ evento.data_evento.strftime('%d/%m/%Y') }}</td>
+                            <td>{{ evento.local }}</td>
+                            <td><span class="badge bg-primary">{{ evento.categoria }}</span></td>
+                            <td>
+                                {% if evento.preco %}
+                                <span class="text-success">R$ {{ "%.2f"|format(evento.preco) }}</span>
+                                {% else %}
+                                <span class="text-success">Gratuito</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{{ url_for('admin_detalhes_evento', id=evento.id) }}" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Status dos Eventos -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-chart-pie me-2"></i>Status dos Eventos</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="statusChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Informações Adicionais</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Média de eventos por mês
+                            <span class="badge bg-primary rounded-pill">{{ (total_eventos / 12)|round(1) }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Categoria mais popular
+                            <span class="badge bg-primary rounded-pill">
+                                {% set max_categoria = {'nome': '', 'total': 0} %}
+                                {% for categoria, total in eventos_por_categoria %}
+                                    {% if total > max_categoria.total %}
+                                        {% set _ = max_categoria.update({'nome': categoria, 'total': total}) %}
+                                    {% endif %}
+                                {% endfor %}
+                                {{ max_categoria.nome }}
+                            </span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Mês com mais eventos
+                            <span class="badge bg-primary rounded-pill">
+                                {% set max_mes = {'numero': 0, 'total': 0} %}
+                                {% for mes, total in eventos_por_mes %}
+                                    {% if total > max_mes.total %}
+                                        {% set _ = max_mes.update({'numero': mes, 'total': total}) %}
+                                    {% endif %}
+                                {% endfor %}
+                                {% set meses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'] %}
+                                {{ meses[max_mes.numero - 1] }}
+                            </span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Gráfico de categorias
+    fetch('/api/estatisticas')
+        .then(response => response.json())
+        .then(data => {
+            // Gráfico de categorias
+            const categoriasData = data.categorias;
+            const categoriasLabels = categoriasData.map(item => item.categoria);
+            const categoriasValues = categoriasData.map(item => item.total);
+            
+            const categoriasCtx = document.getElementById('categoriaChart').getContext('2d');
+            new Chart(categoriasCtx, {
+                type: 'pie',
+                data: {
+                    labels: categoriasLabels,
+                    datasets: [{
+                        data: categoriasValues,
+                        backgroundColor: [
+                                    '#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#6f42c1', '#5a5c69'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right'
+                        }
+                    }
+                }
+            });
+            
+            // Gráfico de meses
+            const mesesData = data.meses;
+            const mesesLabels = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+            
+            // Inicializar array com zeros
+            const mesesValues = Array(12).fill(0);
+            
+            // Preencher com dados reais
+            mesesData.forEach(item => {
+                mesesValues[item.mes - 1] = item.total;
+            });
+            
+            const mesesCtx = document.getElementById('mesChart').getContext('2d');
+            new Chart(mesesCtx, {
+                type: 'bar',
+                data: {
+                    labels: mesesLabels,
+                    datasets: [{
+                        label: 'Eventos por Mês',
+                        data: mesesValues,
+                        backgroundColor: '#4e73df',
+                        borderColor: '#4e73df',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                precision: 0
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Gráfico de status
+            const statusData = [
+                {% for status, total in eventos_por_status %}
+                    { status: '{{ status }}', total: {{ total }} },
+                {% endfor %}
+            ];
+            
+            const statusLabels = statusData.map(item => item.status === 'ativo' ? 'Ativos' : 'Inativos');
+            const statusValues = statusData.map(item => item.total);
+            
+            const statusCtx = document.getElementById('statusChart').getContext('2d');
+            new Chart(statusCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: statusLabels,
+                    datasets: [{
+                        data: statusValues,
+                        backgroundColor: ['#1cc88a', '#e74a3b'],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        })
+        .catch(error => console.error('Erro ao carregar estatísticas:', error));
+});
+</script>
+{% endblock %}
