@@ -1,0 +1,134 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Novo Evento - Painel Administrativo{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="mb-0">
+                        <i class="fas fa-plus me-2"></i>Cadastrar Novo Evento
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <form method="POST" id="formEvento">
+                        <div class="row">
+                            <div class="col-md-8 mb-3">
+                                <label for="titulo" class="form-label">Título do Evento *</label>
+                                <input type="text" class="form-control" id="titulo" name="titulo" required>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="categoria" class="form-label">Categoria *</label>
+                                <select class="form-select" id="categoria" name="categoria" required>
+                                    <option value="">Selecione...</option>
+                                    <option value="show">Show</option>
+                                    <option value="feira">Feira</option>
+                                    <option value="festa">Festa</option>
+                                    <option value="exposicao">Exposição</option>
+                                    <option value="festival">Festival</option>
+                                    <option value="esporte">Esporte</option>
+                                    <option value="outro">Outro</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="descricao" class="form-label">Descrição</label>
+                            <textarea class="form-control" id="descricao" name="descricao" rows="3" 
+                                      placeholder="Descreva o evento, atrações, programação, etc."></textarea>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="data_evento" class="form-label">Data do Evento *</label>
+                                <input type="date" class="form-control" id="data_evento" name="data_evento" required>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="hora_inicio" class="form-label">Horário de Início *</label>
+                                <input type="time" class="form-control" id="hora_inicio" name="hora_inicio" required>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="hora_fim" class="form-label">Horário de Término</label>
+                                <input type="time" class="form-control" id="hora_fim" name="hora_fim">
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="local" class="form-label">Local do Evento *</label>
+                                <input type="text" class="form-control" id="local" name="local" required
+                                       placeholder="Ex: Teatro Municipal, Praça Central">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="endereco" class="form-label">Endereço Completo</label>
+                                <input type="text" class="form-control" id="endereco" name="endereco"
+                                       placeholder="Rua, número, bairro, cidade">
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="organizador" class="form-label">Organizador</label>
+                                <input type="text" class="form-control" id="organizador" name="organizador"
+                                       placeholder="Nome da pessoa ou instituição responsável">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="contato" class="form-label">Contato</label>
+                                <input type="text" class="form-control" id="contato" name="contato"
+                                       placeholder="Telefone, email ou WhatsApp">
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="preco" class="form-label">Preço (R$)</label>
+                                <input type="number" class="form-control" id="preco" name="preco" 
+                                       step="0.01" min="0" placeholder="0.00">
+                                <div class="form-text">Deixe em branco se for gratuito</div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="capacidade" class="form-label">Capacidade</label>
+                                <input type="number" class="form-control" id="capacidade" name="capacidade" 
+                                       min="1" placeholder="Número máximo de pessoas">
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ url_for('admin_eventos') }}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-1"></i>Voltar
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i>Cadastrar Evento
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Definir data mínima como hoje
+    const hoje = new Date().toISOString().split('T')[0];
+    document.getElementById('data_evento').min = hoje;
+    
+    // Validação do formulário
+    document.getElementById('formEvento').addEventListener('submit', function(e) {
+        const horaInicio = document.getElementById('hora_inicio').value;
+        const horaFim = document.getElementById('hora_fim').value;
+        
+        if (horaFim && horaInicio >= horaFim) {
+            e.preventDefault();
+            alert('O horário de término deve ser posterior ao horário de início.');
+            return false;
+        }
+    });
+});
+</script>
+{% endblock %}
