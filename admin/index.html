@@ -1,0 +1,199 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Dashboard - Painel Administrativo{% endblock %}
+
+{% block content %}
+<!-- Hero Section Admin -->
+<section class="py-5" style="background: linear-gradient(135deg, #2c5aa0, #1e3a5f); color: white;">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <h1 class="display-5 fw-bold mb-3">
+                    <i class="fas fa-tachometer-alt me-3"></i>
+                    Painel Administrativo
+                </h1>
+                <p class="lead mb-4">
+                    Gerencie todos os eventos culturais da cidade de forma eficiente e organizada.
+                </p>
+                <div class="d-flex gap-3">
+                    <a href="{{ url_for('admin_novo_evento') }}" class="btn btn-light btn-lg">
+                        <i class="fas fa-plus me-2"></i>Novo Evento
+                    </a>
+                    <a href="{{ url_for('admin_estatisticas') }}" class="btn btn-outline-light btn-lg">
+                        <i class="fas fa-chart-line me-2"></i>Estatísticas
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-4 text-center">
+                <i class="fas fa-user-shield" style="font-size: 6rem; opacity: 0.3;"></i>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Stats Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="stats-number" id="total-eventos">0</div>
+                    <div class="text-muted">Total de Eventos</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="stats-number" id="eventos-mes">0</div>
+                    <div class="text-muted">Este Mês</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="stats-number" id="eventos-semana">0</div>
+                    <div class="text-muted">Esta Semana</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="stats-number" id="categorias">0</div>
+                    <div class="text-muted">Categorias</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Quick Actions -->
+<section class="py-5 bg-white">
+    <div class="container">
+        <div class="row text-center mb-5">
+            <div class="col-12">
+                <h2 class="fw-bold">Ações Rápidas</h2>
+                <p class="text-muted">Acesse rapidamente as principais funcionalidades</p>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 text-center p-4">
+                    <div class="card-body">
+                        <i class="fas fa-plus-circle fa-3x text-primary mb-3"></i>
+                        <h5 class="card-title">Cadastrar Evento</h5>
+                        <p class="card-text">
+                            Adicione novos eventos culturais ao sistema de forma rápida e fácil.
+                        </p>
+                        <a href="{{ url_for('admin_novo_evento') }}" class="btn btn-primary">
+                            <i class="fas fa-plus me-1"></i>Novo Evento
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 text-center p-4">
+                    <div class="card-body">
+                        <i class="fas fa-list fa-3x text-success mb-3"></i>
+                        <h5 class="card-title">Gerenciar Eventos</h5>
+                        <p class="card-text">
+                            Visualize, edite e gerencie todos os eventos cadastrados no sistema.
+                        </p>
+                        <a href="{{ url_for('admin_eventos') }}" class="btn btn-success">
+                            <i class="fas fa-list me-1"></i>Ver Eventos
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 text-center p-4">
+                    <div class="card-body">
+                        <i class="fas fa-chart-line fa-3x text-warning mb-3"></i>
+                        <h5 class="card-title">Estatísticas</h5>
+                        <p class="card-text">
+                            Acesse estatísticas detalhadas e gráficos sobre os eventos.
+                        </p>
+                        <a href="{{ url_for('admin_estatisticas') }}" class="btn btn-warning">
+                            <i class="fas fa-chart-line me-1"></i>Ver Estatísticas
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Recent Events -->
+<section class="py-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h3>Eventos Recentes</h3>
+                    <a href="{{ url_for('admin_eventos') }}" class="btn btn-outline-primary">
+                        Ver Todos <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
+                </div>
+                
+                <div id="eventos-recentes" class="row">
+                    <!-- Eventos serão carregados via JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Carregar estatísticas
+    fetch('/api/eventos')
+        .then(response => response.json())
+        .then(eventos => {
+            const hoje = new Date();
+            const inicioMes = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+            const inicioSemana = new Date(hoje);
+            inicioSemana.setDate(hoje.getDate() - hoje.getDay());
+            
+            const eventosMes = eventos.filter(e => new Date(e.start) >= inicioMes);
+            const eventosSemana = eventos.filter(e => new Date(e.start) >= inicioSemana && new Date(e.start) < new Date(inicioSemana.getTime() + 7 * 24 * 60 * 60 * 1000));
+            const categorias = [...new Set(eventos.map(e => e.category))];
+            
+            document.getElementById('total-eventos').textContent = eventos.length;
+            document.getElementById('eventos-mes').textContent = eventosMes.length;
+            document.getElementById('eventos-semana').textContent = eventosSemana.length;
+            document.getElementById('categorias').textContent = categorias.length;
+            
+            // Mostrar eventos recentes
+            const eventosRecentes = eventos
+                .sort((a, b) => new Date(b.start) - new Date(a.start))
+                .slice(0, 3);
+                
+            const container = document.getElementById('eventos-recentes');
+            container.innerHTML = eventosRecentes.map(evento => `
+                <div class="col-md-4 mb-3">
+                    <div class="card evento-card">
+                        <div class="card-body">
+                            <h6 class="card-title">${evento.title}</h6>
+                            <p class="card-text text-muted small">
+                                <i class="fas fa-calendar me-1"></i>
+                                ${new Date(evento.start).toLocaleDateString('pt-BR')}
+                                <br>
+                                <i class="fas fa-map-marker-alt me-1"></i>
+                                ${evento.location}
+                            </p>
+                            <span class="badge bg-primary categoria-badge">${evento.category}</span>
+                            <div class="mt-2">
+                                <a href="/admin/evento/${evento.id}" class="btn btn-sm btn-outline-primary">
+                                    Ver Detalhes
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        })
+        .catch(error => console.error('Erro ao carregar eventos:', error));
+});
+</script>
+{% endblock %}
