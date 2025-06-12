@@ -1,0 +1,185 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Gerenciar Eventos - Painel Administrativo{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="fas fa-list me-2"></i>Gerenciar Eventos</h2>
+                <a href="{{ url_for('admin_novo_evento') }}" class="btn btn-primary">
+                    <i class="fas fa-plus me-1"></i>Novo Evento
+                </a>
+            </div>
+            
+            <!-- Filtros -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <label for="filtroCategoria" class="form-label">Categoria</label>
+                            <select class="form-select" id="filtroCategoria">
+                                <option value="">Todas as categorias</option>
+                                <option value="show">Show</option>
+                                <option value="feira">Feira</option>
+                                <option value="festa">Festa</option>
+                                <option value="exposicao">Exposição</option>
+                                <option value="festival">Festival</option>
+                                <option value="esporte">Esporte</option>
+                                <option value="outro">Outro</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="filtroMes" class="form-label">Mês</label>
+                            <select class="form-select" id="filtroMes">
+                                <option value="">Todos os meses</option>
+                                <option value="1">Janeiro</option>
+                                <option value="2">Fevereiro</option>
+                                <option value="3">Março</option>
+                                <option value="4">Abril</option>
+                                <option value="5">Maio</option>
+                                <option value="6">Junho</option>
+                                <option value="7">Julho</option>
+                                <option value="8">Agosto</option>
+                                <option value="9">Setembro</option>
+                                <option value="10">Outubro</option>
+                                <option value="11">Novembro</option>
+                                <option value="12">Dezembro</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="filtroBusca" class="form-label">Buscar</label>
+                            <input type="text" class="form-control" id="filtroBusca" placeholder="Digite o nome do evento ou local...">
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end">
+                            <button type="button" class="btn btn-outline-secondary w-100" onclick="limparFiltros()">
+                                <i class="fas fa-times me-1"></i>Limpar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Lista de eventos -->
+            <div id="listaEventos" class="row">
+                {% for evento in eventos %}
+                <div class="col-md-6 col-lg-4 mb-4 evento-item" 
+                     data-categoria="{{ evento.categoria }}" 
+                     data-mes="{{ evento.data_evento.month }}"
+                     data-titulo="{{ evento.titulo.lower() }}"
+                     data-local="{{ evento.local.lower() }}">
+                    <div class="card evento-card h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h5 class="card-title">{{ evento.titulo }}</h5>
+                                <span class="badge bg-primary categoria-badge">{{ evento.categoria }}</span>
+                            </div>
+                            
+                            <p class="card-text text-muted mb-2">
+                                <i class="fas fa-calendar me-1"></i>
+                                {{ evento.data_evento.strftime('%d/%m/%Y') }} às {{ evento.hora_inicio.strftime('%H:%M') }}
+                            </p>
+                            
+                            <p class="card-text text-muted mb-2">
+                                <i class="fas fa-map-marker-alt me-1"></i>
+                                {{ evento.local }}
+                            </p>
+                            
+                            {% if evento.descricao %}
+                            <p class="card-text">
+                                {{ evento.descricao[:100] }}{% if evento.descricao|length > 100 %}...{% endif %}
+                            </p>
+                            {% endif %}
+                            
+                            <div class="d-flex justify-content-between align-items-center mt-3">
+                                {% if evento.preco %}
+                                <span class="text-success fw-bold">R$ {{ "%.2f"|format(evento.preco) }}</span>
+                                {% else %}
+                                <span class="text-success fw-bold">Gratuito</span>
+                                {% endif %}
+                                
+                                <div class="btn-group" role="group">
+                                    <a href="{{ url_for('admin_detalhes_evento', id=evento.id) }}" class="btn btn-outline-primary btn-sm">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{{ url_for('admin_editar_evento', id=evento.id) }}" class="btn btn-outline-secondary btn-sm">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            {% if not eventos %}
+            <div class="text-center py-5">
+                <i class="fas fa-calendar-times fa-4x text-muted mb-3"></i>
+                <h4 class="text-muted">Nenhum evento encontrado</h4>
+                <p class="text-muted">Comece cadastrando seu primeiro evento cultural!</p>
+                <a href="{{ url_for('admin_novo_evento') }}" class="btn btn-primary">
+                    <i class="fas fa-plus me-1"></i>Cadastrar Evento
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const filtroCategoria = document.getElementById('filtroCategoria');
+    const filtroMes = document.getElementById('filtroMes');
+    const filtroBusca = document.getElementById('filtroBusca');
+    
+    function aplicarFiltros() {
+        const categoria = filtroCategoria.value;
+        const mes = filtroMes.value;
+        const busca = filtroBusca.value.toLowerCase();
+        
+        const eventos = document.querySelectorAll('.evento-item');
+        
+        eventos.forEach(evento => {
+            const eventoCategoria = evento.dataset.categoria;
+            const eventoMes = evento.dataset.mes;
+            const eventoTitulo = evento.dataset.titulo;
+            const eventoLocal = evento.dataset.local;
+            
+            let mostrar = true;
+            
+            if (categoria && eventoCategoria !== categoria) {
+                mostrar = false;
+            }
+            
+            if (mes && eventoMes !== mes) {
+                mostrar = false;
+            }
+            
+            if (busca && !eventoTitulo.includes(busca) && !eventoLocal.includes(busca)) {
+                mostrar = false;
+            }
+            
+            evento.style.display = mostrar ? 'block' : 'none';
+        });
+    }
+    
+    filtroCategoria.addEventListener('change', aplicarFiltros);
+    filtroMes.addEventListener('change', aplicarFiltros);
+    filtroBusca.addEventListener('input', aplicarFiltros);
+});
+
+function limparFiltros() {
+    document.getElementById('filtroCategoria').value = '';
+    document.getElementById('filtroMes').value = '';
+    document.getElementById('filtroBusca').value = '';
+    
+    document.querySelectorAll('.evento-item').forEach(evento => {
+        evento.style.display = 'block';
+    });
+}
+</script>
+{% endblock %}
