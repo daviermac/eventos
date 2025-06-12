@@ -1,0 +1,140 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Editar {{ evento.titulo }} - Eventos Culturais{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="mb-0">
+                        <i class="fas fa-edit me-2"></i>Editar Evento
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <form method="POST" id="formEvento">
+                        <div class="row">
+                            <div class="col-md-8 mb-3">
+                                <label for="titulo" class="form-label">Título do Evento *</label>
+                                <input type="text" class="form-control" id="titulo" name="titulo" 
+                                       value="{{ evento.titulo }}" required>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="categoria" class="form-label">Categoria *</label>
+                                <select class="form-select" id="categoria" name="categoria" required>
+                                    <option value="">Selecione...</option>
+                                    <option value="show" {{ 'selected' if evento.categoria == 'show' }}>Show</option>
+                                    <option value="feira" {{ 'selected' if evento.categoria == 'feira' }}>Feira</option>
+                                    <option value="festa" {{ 'selected' if evento.categoria == 'festa' }}>Festa</option>
+                                    <option value="exposicao" {{ 'selected' if evento.categoria == 'exposicao' }}>Exposição</option>
+                                    <option value="festival" {{ 'selected' if evento.categoria == 'festival' }}>Festival</option>
+                                    <option value="esporte" {{ 'selected' if evento.categoria == 'esporte' }}>Esporte</option>
+                                    <option value="outro" {{ 'selected' if evento.categoria == 'outro' }}>Outro</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="descricao" class="form-label">Descrição</label>
+                            <textarea class="form-control" id="descricao" name="descricao" rows="3" 
+                                      placeholder="Descreva o evento, atrações, programação, etc.">{{ evento.descricao or '' }}</textarea>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="data_evento" class="form-label">Data do Evento *</label>
+                                <input type="date" class="form-control" id="data_evento" name="data_evento" 
+                                       value="{{ evento.data_evento.strftime('%Y-%m-%d') }}" required>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="hora_inicio" class="form-label">Horário de Início *</label>
+                                <input type="time" class="form-control" id="hora_inicio" name="hora_inicio" 
+                                       value="{{ evento.hora_inicio.strftime('%H:%M') }}" required>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="hora_fim" class="form-label">Horário de Término</label>
+                                <input type="time" class="form-control" id="hora_fim" name="hora_fim"
+                                       value="{{ evento.hora_fim.strftime('%H:%M') if evento.hora_fim else '' }}">
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="local" class="form-label">Local do Evento *</label>
+                                <input type="text" class="form-control" id="local" name="local" 
+                                       value="{{ evento.local }}" required
+                                       placeholder="Ex: Teatro Municipal, Praça Central">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="endereco" class="form-label">Endereço Completo</label>
+                                <input type="text" class="form-control" id="endereco" name="endereco"
+                                       value="{{ evento.endereco or '' }}"
+                                       placeholder="Rua, número, bairro, cidade">
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="organizador" class="form-label">Organizador</label>
+                                <input type="text" class="form-control" id="organizador" name="organizador"
+                                       value="{{ evento.organizador or '' }}"
+                                       placeholder="Nome da pessoa ou instituição responsável">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="contato" class="form-label">Contato</label>
+                                <input type="text" class="form-control" id="contato" name="contato"
+                                       value="{{ evento.contato or '' }}"
+                                       placeholder="Telefone, email ou WhatsApp">
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="preco" class="form-label">Preço (R$)</label>
+                                <input type="number" class="form-control" id="preco" name="preco" 
+                                       step="0.01" min="0" placeholder="0.00"
+                                       value="{{ evento.preco if evento.preco else '' }}">
+                                <div class="form-text">Deixe em branco se for gratuito</div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="capacidade" class="form-label">Capacidade</label>
+                                <input type="number" class="form-control" id="capacidade" name="capacidade" 
+                                       min="1" placeholder="Número máximo de pessoas"
+                                       value="{{ evento.capacidade if evento.capacidade else '' }}">
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ url_for('admin_detalhes_evento', id=evento.id) }}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-1"></i>Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i>Salvar Alterações
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Validação do formulário
+    document.getElementById('formEvento').addEventListener('submit', function(e) {
+        const horaInicio = document.getElementById('hora_inicio').value;
+        const horaFim = document.getElementById('hora_fim').value;
+        
+        if (horaFim && horaInicio >= horaFim) {
+            e.preventDefault();
+            alert('O horário de término deve ser posterior ao horário de início.');
+            return false;
+        }
+    });
+});
+</script>
+{% endblock %}
