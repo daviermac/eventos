@@ -1,0 +1,179 @@
+{% extends "public/base.html" %}
+
+{% block title %}Calendário - Eventos Culturais{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="fas fa-calendar-alt me-2"></i>Calendário de Eventos</h2>
+            </div>
+            
+            <div class="card">
+                <div class="card-body">
+                    <div id="calendar"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para detalhes do evento -->
+<div class="modal fade" id="eventoModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="eventoModalTitle">Detalhes do Evento</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="eventoModalBody">
+                <!-- Conteúdo será carregado via JavaScript -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                <a href="#" id="verEventoBtn" class="btn btn-primary">
+                    <i class="fas fa-eye me-1"></i>Ver Detalhes
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    console.log("🚀 Iniciando calendário público...");
+    
+    const calendarEl = document.getElementById('calendar');
+    if (!calendarEl) {
+        console.error("❌ Elemento #calendar não encontrado!");
+        return;
+    }
+    
+    if (typeof FullCalendar === 'undefined') {
+        console.error("❌ FullCalendar não está carregado!");
+        return;
+    }
+    
+    try {
+        const calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            locale: 'pt-br',
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,timeGridWeek,timeGridDay'
+            },
+            buttonText: {
+                today: 'Hoje',
+                month: 'Mês',
+                week: 'Semana',
+                day: 'Dia'
+            },
+            height: 'auto',
+            events: '/api/eventos',
+            
+            eventClick: function(info) {
+                mostrarDetalhesEvento(info.event.id);
+            },
+            
+            eventDidMount: function(info) {
+                // Cores por categoria
+                const cores = {
+                    'show': '#e74c3c',
+                    'feira': '#f39c12', 
+                    'teatro': '#9b59b6',
+                    'exposicao': '#3498db',
+                    'festival': '#27ae60',
+                    'workshop': '#e67e22',
+                    'outro': '#95a5a6'
+                };
+                
+                const categoria = info.event.extendedProps.category;
+                if (cores[categoria]) {
+                    info.el.style.backgroundColor = cores[categoria];
+                    info.el.style.borderColor = cores[categoria];
+                }
+            }
+        });
+        
+        calendar.render();
+        console.log("✅ Calendário renderizado com sucesso!");
+        
+    } catch (error) {
+        console.error("❌ Erro ao criar calendário:", error);
+    }
+    
+    function mostrarDetalhesEvento(eventoId) {
+        fetch(`/api/eventos/${eventoId}`)
+            .then(response => response.json())
+            .then(evento => {
+                document.getElementById('eventoModalTitle').textContent = evento.title;
+                
+                const dataInicio = new Date(evento.start);
+                const dataFim = evento.end ? new Date(evento.end) : null;
+                
+                document.getElementById('eventoModalBody').innerHTML = `
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-calendar me-2"></i>Data e Horário</h6>
+                            <p>${dataInicio.toLocaleDateString('pt-BR')} às ${dataInicio.toLocaleTimeString('pt-BR', {hour: '2-digit', minute: '2-digit'})}
+                            ${dataFim ? ' - ' + dataFim.toLocaleTimeString('pt-BR', {hour: '2-digit', minute: '2-digit'}) : ''}</p>
+                            
+                            <h6><i class="fas fa-map-marker-alt me-2"></i>Local</h6>
+                            <p>${evento.location}</p>
+                            
+                            <h6><i class="fas fa-tag me-2"></i>Categoria</h6>
+                            <p><span class="badge bg-primary">${evento.category}</span></p>
+                        </div>
+                        <div class="col-md-6">
+                            ${evento.organizer ? `
+                                <h6><i class="fas fa-user me-2"></i>Organizador</h6>
+                                <p>${evento.organizer}</p>
+                            ` : ''}
+                            
+                            ${evento.contact ? `
+                                <h6><i class="fas fa-phone me-2"></i>Contato</h6>
+                                <p>${evento.contact}</p>
+                            ` : ''}
+                            
+                            ${evento.price ? `
+                                <h6><i class="fas fa-dollar-sign me-2"></i>Preço</h6>
+                                <p class="text-success fw-bold">R$ ${evento.price.toFixed(2)}</p>
+                            ` : `
+                                <h6><i class="fas fa-gift me-2"></i>Entrada</h6>
+                                <p class="text-success fw-bold">Gratuita</p>
+                            `}
+                            
+                            ${evento.capacity ? `
+                                <h6><i class="fas fa-users me-2"></i>Capacidade</h6>
+                                <p>${evento.capacity} pessoas</p>
+                            ` : ''}
+                        </div>
+                    </div>
+                    
+                    ${evento.description ? `
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <h6><i class="fas fa-info-circle me-2"></i>Descrição</h6>
+                                <p>${evento.description}</p>
+                            </div>
+                        </div>
+                    ` : ''}
+                `;
+                
+                document.getElementById('verEventoBtn').href = `/evento/${eventoId}`;
+                
+                const modal = new bootstrap.Modal(document.getElementById('eventoModal'));
+                modal.show();
+            })
+            .catch(error => {
+                console.error('Erro ao carregar detalhes do evento:', error);
+                alert('Erro ao carregar detalhes do evento');
+            });
+    }
+});
+</script>
+{% endblock %}
