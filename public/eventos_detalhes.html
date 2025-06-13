@@ -1,0 +1,120 @@
+{% extends "public/base.html" %}
+
+{% block title %}{{ evento.titulo }} - Eventos Culturais{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h3 class="mb-0">{{ evento.titulo }}</h3>
+                    <span class="badge bg-primary fs-6">{{ evento.categoria }}</span>
+                </div>
+                <div class="card-body">
+                    {% if evento.descricao %}
+                    <div class="mb-4">
+                        <h5><i class="fas fa-info-circle me-2"></i>Descrição</h5>
+                        <p class="text-muted">{{ evento.descricao }}</p>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-calendar me-2"></i>Data e Horário</h6>
+                            <p>{{ evento.data_evento.strftime('%d/%m/%Y') }} às {{ evento.hora_inicio.strftime('%H:%M') }}
+                            {% if evento.hora_fim %} - {{ evento.hora_fim.strftime('%H:%M') }}{% endif %}</p>
+                            
+                            <h6><i class="fas fa-map-marker-alt me-2"></i>Local</h6>
+                            <p>{{ evento.local }}</p>
+                            {% if evento.endereco %}
+                            <p class="text-muted small">{{ evento.endereco }}</p>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            {% if evento.organizador %}
+                            <h6><i class="fas fa-user me-2"></i>Organizador</h6>
+                            <p>{{ evento.organizador }}</p>
+                            {% endif %}
+                            
+                            {% if evento.contato %}
+                            <h6><i class="fas fa-phone me-2"></i>Contato</h6>
+                            <p>{{ evento.contato }}</p>
+                            {% endif %}
+                            
+                            {% if evento.preco %}
+                            <h6><i class="fas fa-dollar-sign me-2"></i>Preço</h6>
+                            <p class="text-success fw-bold">R$ {{ "%.2f"|format(evento.preco) }}</p>
+                            {% else %}
+                            <h6><i class="fas fa-gift me-2"></i>Entrada</h6>
+                            <p class="text-success fw-bold">Gratuita</p>
+                            {% endif %}
+                            
+                            {% if evento.capacidade %}
+                            <h6><i class="fas fa-users me-2"></i>Capacidade</h6>
+                            <p>{{ evento.capacidade }} pessoas</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Ações</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <button type="button" class="btn btn-primary" onclick="compartilhar()">
+                            <i class="fas fa-share me-1"></i>Compartilhar
+                        </button>
+                        <a href="{{ url_for('site_calendario') }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-calendar me-1"></i>Ver no Calendário
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h6 class="mb-0">Informações</h6>
+                </div>
+                <div class="card-body">
+                    <small class="text-muted">
+                        <strong>Cadastrado em:</strong><br>
+                        {{ evento.data_criacao.strftime('%d/%m/%Y às %H:%M') }}
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mt-4">
+        <div class="col-12">
+            <a href="{{ url_for('site_eventos') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left me-1"></i>Voltar para Lista
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function compartilhar() {
+    if (navigator.share) {
+        navigator.share({
+            title: '{{ evento.titulo }}',
+            text: 'Confira este evento: {{ evento.titulo }} em {{ evento.local }}',
+            url: window.location.href
+        });
+    } else {
+        navigator.clipboard.writeText(window.location.href).then(() => {
+            alert('Link copiado para a área de transferência!');
+        });
+    }
+}
+</script>
+{% endblock %}
